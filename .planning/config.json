@@ -1,0 +1,161 @@
+{
+  "project": {
+    "name": "Government Accountability Database (GADB)",
+    "type": "brownfield",
+    "status": "active_development",
+    "created": "2026-01-14",
+    "last_updated": "2026-01-14"
+  },
+  "mode": {
+    "primary": "systematic",
+    "description": "Systematic quality and security improvements for production-ready application",
+    "rationale": "Need methodical approach to address critical security issues, add comprehensive tests, and improve logging across the codebase"
+  },
+  "depth": {
+    "level": "comprehensive",
+    "description": "Deep analysis required for security vulnerabilities, untested code paths, and quality issues",
+    "rationale": "Critical security issues and 0% test coverage in service layer require thorough investigation"
+  },
+  "parallelization": {
+    "enabled": true,
+    "max_agents": 5,
+    "strategy": "domain_based",
+    "domains": [
+      "security",
+      "testing",
+      "logging",
+      "performance",
+      "quality"
+    ],
+    "rationale": "Security fixes, test creation, logging improvements, and performance optimization can proceed independently"
+  },
+  "wave_strategies": {
+    "preferred": "systematic",
+    "fallback": "progressive",
+    "validation_required": true,
+    "checkpoint_enabled": true,
+    "rationale": "Security and quality work requires careful validation at each step; systematic approach ensures no issues are missed"
+  },
+  "focus_areas": {
+    "immediate": [
+      "security_critical",
+      "rate_limiting",
+      "secrets_management",
+      "service_testing",
+      "logging_replacement"
+    ],
+    "near_term": [
+      "error_handling",
+      "code_quality",
+      "performance_optimization",
+      "test_coverage"
+    ],
+    "long_term": [
+      "advanced_features",
+      "monitoring",
+      "scalability"
+    ]
+  },
+  "quality_gates": {
+    "security": {
+      "no_committed_secrets": true,
+      "rate_limiting_enabled": true,
+      "no_default_passwords": true
+    },
+    "testing": {
+      "service_layer_coverage": 80,
+      "overall_backend_coverage": 80,
+      "celery_tasks_tested": true
+    },
+    "code_quality": {
+      "no_print_statements": true,
+      "no_bare_exceptions": true,
+      "frontend_error_states": true,
+      "max_file_lines": 300
+    },
+    "performance": {
+      "caching_enabled": true,
+      "no_n_plus_one_queries": true,
+      "pagination_limits": true
+    }
+  },
+  "technology_stack": {
+    "backend": {
+      "language": "python",
+      "version": "3.11",
+      "framework": "fastapi",
+      "framework_version": "0.104",
+      "orm": "sqlalchemy",
+      "orm_version": "2.0.25",
+      "database": "postgresql",
+      "cache": "redis",
+      "task_queue": "celery"
+    },
+    "frontend": {
+      "framework": "react",
+      "version": "19.2",
+      "language": "typescript",
+      "language_version": "5.9",
+      "build_tool": "vite",
+      "styling": "tailwind_css"
+    },
+    "testing": {
+      "backend": "pytest",
+      "frontend_unit": "vitest",
+      "e2e": "playwright"
+    },
+    "infrastructure": {
+      "containerization": "docker",
+      "orchestration": "docker_compose",
+      "ci_cd": "github_actions",
+      "web_server": "nginx"
+    }
+  },
+  "conventions": {
+    "backend": {
+      "style": "pep8",
+      "naming": "snake_case",
+      "type_hints": "required",
+      "docstrings": "required_for_complex"
+    },
+    "frontend": {
+      "style": "eslint",
+      "naming": "camelCase_PascalCase",
+      "type_safety": "typescript_strict"
+    },
+    "git": {
+      "commit_style": "conventional_commits",
+      "branch_strategy": "feature_branches",
+      "pr_required": true,
+      "code_review_required": true
+    }
+  },
+  "preferences": {
+    "compression": "auto",
+    "thinking_depth": "moderate",
+    "validation_level": "strict",
+    "documentation_updates": "automatic",
+    "git_commits": "on_milestone_completion"
+  },
+  "context": {
+    "codebase_mapped": true,
+    "codebase_map_location": ".planning/codebase/",
+    "codebase_map_files": [
+      "STACK.md",
+      "ARCHITECTURE.md",
+      "STRUCTURE.md",
+      "CONVENTIONS.md",
+      "TESTING.md",
+      "INTEGRATIONS.md",
+      "CONCERNS.md"
+    ],
+    "total_codebase_lines": 1762,
+    "last_work": "ingestion_features",
+    "last_work_status": "built_but_needs_quality_improvements"
+  },
+  "notes": {
+    "user_intent": "Continue development and address technical debt, particularly around RSS feeds, YouTube scripts, and ingestion infrastructure",
+    "critical_findings": "Committed secrets in .env files, no rate limiting, untested service layer, print() instead of logging",
+    "immediate_action": "Priority 1 security fixes must be completed before any new feature development"
+  }
+}
