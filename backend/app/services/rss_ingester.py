@@ -1,6 +1,7 @@
 """RSS feed ingestion service."""
 import feedparser
 import requests
+import logging
 from datetime import datetime
 from typing import List, Dict, Optional
 from bs4 import BeautifulSoup
@@ -8,6 +9,8 @@ from sqlalchemy.orm import Session
 
 from app.models import IngestionQueue
 from app.models.base import SourceTypeEnum
+
+logger = logging.getLogger(__name__)
 
 
 class RSSIngester:
@@ -61,7 +64,7 @@ class RSSIngester:
 
             return None
         except Exception as e:
-            print(f"Error extracting content from {url}: {str(e)}")
+            logger.warning(f"Error extracting content from {url}: {str(e)}")
             return None
 
     @staticmethod
@@ -75,8 +78,9 @@ class RSSIngester:
                 if date_tuple:
                     try:
                         return datetime(*date_tuple[:6])
-                    except:
-                        pass
+                    except (TypeError, ValueError) as e:
+                        logger.debug(f"Failed to parse date from {field}: {str(e)}")
+                        continue
 
         return None
 
@@ -147,7 +151,7 @@ class RSSIngester:
                 )
                 queue_items.append(queue_item)
             except Exception as e:
-                print(f"Error adding entry to queue: {str(e)}")
+                logger.error(f"Error adding entry to queue: {str(e)}", exc_info=True)
                 continue
 
         return queue_items

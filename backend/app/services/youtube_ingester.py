@@ -1,5 +1,6 @@
 """YouTube video ingestion service."""
 import re
+import logging
 from typing import Optional, Dict
 from datetime import datetime
 from youtube_transcript_api import YouTubeTranscriptApi
@@ -7,6 +8,8 @@ from sqlalchemy.orm import Session
 
 from app.models import IngestionQueue
 from app.models.base import SourceTypeEnum
+
+logger = logging.getLogger(__name__)
 
 
 class YouTubeIngester:
@@ -45,7 +48,7 @@ class YouTubeIngester:
 
             return transcript
         except Exception as e:
-            print(f"Error fetching transcript for {video_id}: {str(e)}")
+            logger.error(f"Error fetching transcript for {video_id}: {str(e)}", exc_info=True)
             return None
 
     @staticmethod
@@ -58,6 +61,37 @@ class YouTubeIngester:
             'url': f'https://www.youtube.com/watch?v={video_id}',
             'embed_url': f'https://www.youtube.com/embed/{video_id}'
         }
+
+    @staticmethod
+    def get_channel_feed_url(channel_id: str) -> str:
+        """
+        Get RSS feed URL for a YouTube channel.
+
+        YouTube provides RSS feeds for channels that can be used
+        to monitor new videos without API quota limits.
+
+        Args:
+            channel_id: YouTube channel ID (starts with UC...)
+
+        Returns:
+            RSS feed URL for the channel
+        """
+        return f'https://www.youtube.com/feeds/videos.xml?channel_id={channel_id}'
+
+    @staticmethod
+    def get_channel_feed_url_by_username(username: str) -> str:
+        """
+        Get RSS feed URL for a YouTube channel by username.
+
+        Args:
+            username: YouTube channel username/handle (e.g., @username)
+
+        Returns:
+            RSS feed URL for the channel
+        """
+        # Remove @ if present
+        username = username.lstrip('@')
+        return f'https://www.youtube.com/feeds/videos.xml?user={username}'
 
     @staticmethod
     def add_to_queue(

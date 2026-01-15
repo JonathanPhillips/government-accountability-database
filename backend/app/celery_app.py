@@ -1,7 +1,7 @@
 """Celery application configuration."""
 from celery import Celery
-from celery.schedules import crontab
 from app.config import settings
+from app.celerybeat_schedule import CELERYBEAT_SCHEDULE
 
 # Create Celery app
 celery_app = Celery(
@@ -23,12 +23,6 @@ celery_app.conf.update(
     task_soft_time_limit=25 * 60,  # 25 minutes
     worker_prefetch_multiplier=1,
     worker_max_tasks_per_child=1000,
+    # Import scheduled tasks from celerybeat_schedule.py
+    beat_schedule=CELERYBEAT_SCHEDULE,
 )
-
-# Scheduled tasks
-celery_app.conf.beat_schedule = {
-    "ingest-rss-feeds-hourly": {
-        "task": "app.tasks.ingestion_tasks.ingest_all_feeds",
-        "schedule": crontab(minute=0),  # Every hour
-    },
-}
