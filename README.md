@@ -7,6 +7,8 @@ A comprehensive, production-ready database system for tracking and documenting g
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.104+-green.svg)](https://fastapi.tiangolo.com)
 [![React](https://img.shields.io/badge/React-19.2+-blue.svg)](https://react.dev)
 
+> **📦 Self-Hosted Application**: This is open source software you deploy and run yourself. Each organization runs their own instance with their own data, domain, and users. Think WordPress or GitLab (everyone runs their own), not GitHub.com (single centralized service). See [DEPLOYMENT.md](DEPLOYMENT.md) for setup instructions.
+
 ## 🎯 Project Status
 
 **Status**: ✅ **Production Ready**
@@ -107,7 +109,7 @@ A comprehensive, production-ready database system for tracking and documenting g
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourorg/govt_accountability.git
+git clone https://github.com/JonathanPhillips/government-accountability-database.git
 cd govt_accountability
 
 # Start all services
@@ -516,7 +518,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 📞 Support
 
 - **Documentation**: See [DEPLOYMENT.md](DEPLOYMENT.md) for deployment guide
-- **Issues**: Report bugs via [GitHub Issues](https://github.com/yourorg/govt_accountability/issues)
+- **Issues**: Report bugs via [GitHub Issues](https://github.com/JonathanPhillips/government-accountability-database/issues)
 - **Security**: Report security issues to security@yourdomain.com
 
 ## 🎯 Roadmap

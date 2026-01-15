@@ -116,12 +116,12 @@ gh repo create govt_accountability --public --description "Government accountabi
 Replace these placeholder URLs in your files:
 - `README.md`: Line 110, 476
 - `.github/ISSUE_TEMPLATE/*.yml`: Update repository references
-- Any other files referencing `yourorg/govt_accountability`
+- Any other files referencing `JonathanPhillips/government-accountability-database`
 
 **Find and replace**:
 ```bash
 # Find all occurrences
-grep -r "yourorg/govt_accountability" .
+grep -r "JonathanPhillips/government-accountability-database" .
 grep -r "yourdomain.com" .
 
 # Replace with your actual GitHub username/org
