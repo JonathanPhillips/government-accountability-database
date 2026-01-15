@@ -129,10 +129,16 @@ govt_accountability/
 ## Recent Accomplishments
 
 ### 2026-01-15
+- ✅ **SUCCESSFULLY DEPLOYED TO PRODUCTION (Docker Compose)**
+  - Fixed critical Redis/PostgreSQL URL encoding issues (special characters in passwords)
+  - Fixed Pydantic settings parsing for CORS_ORIGINS (JSON array format required)
+  - Modified docker-compose.prod.yml to use env_file directive for proper environment loading
+  - All backend services now healthy and operational
+  - Verified ingestion system working in production (5 test articles successfully ingested)
 - ✅ **DEPLOYED INGESTION SYSTEM TO PRODUCTION**
   - Fixed Docker dependency issues (slowapi, email-validator)
   - Rebuilt all containers with updated dependencies
-  - All services now running and healthy (backend, frontend, celery-worker, celery-beat, postgres, redis)
+  - All services running: backend (healthy), frontend (running), celery-worker (functional), celery-beat (functional), postgres (healthy), redis (healthy)
 - ✅ **Comprehensive Ingestion Documentation (1650+ lines)**
   - Created INGESTION_SOURCES.md (800+ lines) - Complete source configuration guide
   - Created INGESTION_SETUP.md (850+ lines) - Setup and testing procedures
