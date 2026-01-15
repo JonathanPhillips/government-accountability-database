@@ -21,9 +21,12 @@ from app.utils.auth import (
     create_refresh_token,
     decode_access_token
 )
-from app.utils.deps import get_current_active_user, require_role
+from app.utils.deps import get_current_user, get_current_active_user, require_role
 from app.utils.rate_limit import limiter, AUTH_RATE_LIMIT
 from app.config import settings
+
+# Default passwords that must be rejected
+DEFAULT_PASSWORDS = ["changeme123", "admin", "password", "123456", "admin123"]
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
@@ -235,15 +238,24 @@ def update_current_user(
 @router.post("/change-password", status_code=status.HTTP_204_NO_CONTENT)
 def change_password(
     password_data: PasswordChange,
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(get_current_user),  # Use get_current_user to allow forced password changes
     db: Session = Depends(get_db)
 ):
     """
     Change current user's password.
 
+    This endpoint allows password changes even when force_password_change is true.
+
     - **current_password**: Current password for verification
-    - **new_password**: New password (minimum 8 characters)
+    - **new_password**: New password (minimum 8 characters, cannot be a default password)
     """
+    # Check if user is active
+    if not current_user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Inactive user"
+        )
+
     # Verify current password
     if not verify_password(password_data.current_password, current_user.hashed_password):
         raise HTTPException(
@@ -251,8 +263,16 @@ def change_password(
             detail="Incorrect current password"
         )
 
-    # Update password
+    # Reject default/weak passwords
+    if password_data.new_password in DEFAULT_PASSWORDS:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot use a default or common password. Please choose a unique, strong password."
+        )
+
+    # Update password and clear force_password_change flag
     current_user.hashed_password = get_password_hash(password_data.new_password)
+    current_user.force_password_change = False
     db.commit()
 
 
