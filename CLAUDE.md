@@ -129,12 +129,21 @@ govt_accountability/
 ## Recent Accomplishments
 
 ### 2026-01-15
-- ✅ **SUCCESSFULLY DEPLOYED TO PRODUCTION (Docker Compose)**
+- ✅ **SUCCESSFULLY DEPLOYED TO PRODUCTION (Kubernetes)**
+  - **Fixed critical Redis authentication issue**: Redis had no password but Celery tried to authenticate
+  - Updated Kubernetes secret with passwordless Redis URLs (removed password from connection strings)
+  - Built and pushed latest Docker images to local registry (192.168.0.18:30500)
+  - Rolled out deployment updates to all services
+  - **Celery workers now operational**: 0 restarts (down from 66 continuous failures!)
+  - **Automated ingestion verified**: 45 RSS items successfully ingested from 5 sources
+  - All services running and healthy in K8s cluster
+  - Created comprehensive Kubernetes deployment documentation
+- ✅ **SUCCESSFULLY DEPLOYED TO DOCKER COMPOSE (Development/Staging)**
   - Fixed critical Redis/PostgreSQL URL encoding issues (special characters in passwords)
   - Fixed Pydantic settings parsing for CORS_ORIGINS (JSON array format required)
   - Modified docker-compose.prod.yml to use env_file directive for proper environment loading
   - All backend services now healthy and operational
-  - Verified ingestion system working in production (5 test articles successfully ingested)
+  - Verified ingestion system working (5 test articles successfully ingested)
 - ✅ **DEPLOYED INGESTION SYSTEM TO PRODUCTION**
   - Fixed Docker dependency issues (slowapi, email-validator)
   - Rebuilt all containers with updated dependencies
