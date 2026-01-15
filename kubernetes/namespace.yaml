@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: gadb
+  labels:
+    name: gadb
+    app: government-accountability-database

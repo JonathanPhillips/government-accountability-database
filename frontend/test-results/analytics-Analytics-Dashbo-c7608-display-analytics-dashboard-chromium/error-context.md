@@ -1,0 +1,117 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - navigation [ref=e5]:
+      - generic [ref=e6]:
+        - link "GADB Government Accountability Database" [ref=e7] [cursor=pointer]:
+          - /url: /
+          - generic [ref=e8]: GADB
+          - generic [ref=e9]: Government Accountability Database
+        - generic [ref=e10]:
+          - link "Incidents" [ref=e11] [cursor=pointer]:
+            - /url: /incidents
+          - link "Analytics" [ref=e12] [cursor=pointer]:
+            - /url: /analytics
+          - link "About" [ref=e13] [cursor=pointer]:
+            - /url: /about
+          - link "Login" [ref=e14] [cursor=pointer]:
+            - /url: /login
+  - main [ref=e15]:
+    - generic [ref=e16]:
+      - generic [ref=e17]:
+        - heading "Analytics Dashboard" [level=1] [ref=e18]
+        - generic [ref=e19]:
+          - button "Export Analytics" [ref=e20]
+          - button "Refresh Data" [ref=e21]
+      - generic [ref=e22]:
+        - generic [ref=e23]:
+          - generic [ref=e24]: Total Incidents
+          - generic [ref=e25]: "5"
+        - generic [ref=e26]:
+          - generic [ref=e27]: Recent (30 Days)
+          - generic [ref=e28]: "5"
+        - generic [ref=e29]:
+          - generic [ref=e30]: States Affected
+          - generic [ref=e31]: "2"
+        - generic [ref=e32]:
+          - generic [ref=e33]: Categories
+          - generic [ref=e34]: "5"
+      - generic [ref=e35]:
+        - generic [ref=e36]:
+          - heading "By Severity" [level=2] [ref=e37]
+          - generic [ref=e38]:
+            - generic [ref=e40]:
+              - generic [ref=e41]: high
+              - generic [ref=e42]: 3 (60%)
+            - generic [ref=e46]:
+              - generic [ref=e47]: critical
+              - generic [ref=e48]: 1 (20%)
+            - generic [ref=e52]:
+              - generic [ref=e53]: medium
+              - generic [ref=e54]: 1 (20%)
+        - generic [ref=e57]:
+          - heading "Verification Status" [level=2] [ref=e58]
+          - generic [ref=e61]:
+            - generic [ref=e62]: documented
+            - generic [ref=e63]: 5 (100%)
+        - generic [ref=e66]:
+          - heading "Geographic Scope" [level=2] [ref=e67]
+          - generic [ref=e68]:
+            - generic [ref=e70]:
+              - generic [ref=e71]: federal
+              - generic [ref=e72]: 4 (80%)
+            - generic [ref=e76]:
+              - generic [ref=e77]: state
+              - generic [ref=e78]: 1 (20%)
+        - generic [ref=e81]:
+          - heading "Top States by Incident Count" [level=2] [ref=e82]
+          - generic [ref=e83]:
+            - generic [ref=e85]:
+              - generic [ref=e86]: "#1 California"
+              - generic [ref=e87]: "1"
+            - generic [ref=e91]:
+              - generic [ref=e92]: "#2 Texas"
+              - generic [ref=e93]: "1"
+      - generic [ref=e96]:
+        - generic [ref=e97]:
+          - heading "Incidents by Category" [level=2] [ref=e98]
+          - generic [ref=e99]:
+            - generic [ref=e101]:
+              - generic [ref=e102]: Due Process Violations
+              - generic [ref=e103]: "1"
+            - generic [ref=e107]:
+              - generic [ref=e108]: Excessive Force
+              - generic [ref=e109]: "1"
+            - generic [ref=e113]:
+              - generic [ref=e114]: Surveillance Abuse
+              - generic [ref=e115]: "1"
+            - generic [ref=e119]:
+              - generic [ref=e120]: Court Order Defiance
+              - generic [ref=e121]: "1"
+            - generic [ref=e125]:
+              - generic [ref=e126]: Whistleblower Retaliation
+              - generic [ref=e127]: "1"
+        - generic [ref=e130]:
+          - heading "Recent Activity" [level=2] [ref=e131]
+          - generic [ref=e132]: Showing last 2 months
+          - generic [ref=e133]:
+            - generic [ref=e134]:
+              - generic [ref=e135]: 2025-02
+              - generic [ref=e136]: 3 incidents
+            - generic [ref=e137]:
+              - generic [ref=e138]: 2025-01
+              - generic [ref=e139]: 2 incidents
+      - generic [ref=e140]: "Last updated: 1/12/2026, 8:26:35 PM"
+  - contentinfo [ref=e141]:
+    - generic [ref=e143]:
+      - generic [ref=e144]: © 2026 Government Accountability Database. All rights reserved.
+      - generic [ref=e145]:
+        - link "Privacy Policy" [ref=e146] [cursor=pointer]:
+          - /url: "#"
+        - link "Terms of Service" [ref=e147] [cursor=pointer]:
+          - /url: "#"
+        - link "Contact" [ref=e148] [cursor=pointer]:
+          - /url: "#"
+```

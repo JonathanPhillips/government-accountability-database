@@ -1,0 +1,135 @@
+---
+# Celery Worker Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: celery-worker
+  namespace: gadb
+  labels:
+    app: celery-worker
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: celery-worker
+  template:
+    metadata:
+      labels:
+        app: celery-worker
+    spec:
+      containers:
+      - name: celery-worker
+        image: 192.168.0.18:30002/gadb/backend:latest
+        imagePullPolicy: Always
+        command: ["celery"]
+        args: ["-A", "app.tasks.celery_app", "worker", "--loglevel=info"]
+        env:
+        - name: DATABASE_URL
+          value: "postgresql://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@$(POSTGRES_HOST):5432/$(POSTGRES_DB)"
+        - name: POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              name: gadb-secret
+              key: postgres-user
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: gadb-secret
+              key: postgres-password
+        - name: POSTGRES_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: gadb-config
+              key: POSTGRES_HOST
+        - name: POSTGRES_DB
+          valueFrom:
+            configMapKeyRef:
+              name: gadb-config
+              key: POSTGRES_DB
+        - name: REDIS_URL
+          value: "redis://$(REDIS_HOST):6379/0"
+        - name: REDIS_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: gadb-config
+              key: REDIS_HOST
+        - name: ENVIRONMENT
+          valueFrom:
+            configMapKeyRef:
+              name: gadb-config
+              key: ENVIRONMENT
+        resources:
+          requests:
+            cpu: 200m
+            memory: 512Mi
+          limits:
+            cpu: 1000m
+            memory: 2Gi
+
+---
+# Celery Beat Deployment (Scheduler)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: celery-beat
+  namespace: gadb
+  labels:
+    app: celery-beat
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: celery-beat
+  template:
+    metadata:
+      labels:
+        app: celery-beat
+    spec:
+      containers:
+      - name: celery-beat
+        image: 192.168.0.18:30002/gadb/backend:latest
+        imagePullPolicy: Always
+        command: ["celery"]
+        args: ["-A", "app.tasks.celery_app", "beat", "--loglevel=info"]
+        env:
+        - name: DATABASE_URL
+          value: "postgresql://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@$(POSTGRES_HOST):5432/$(POSTGRES_DB)"
+        - name: POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              name: gadb-secret
+              key: postgres-user
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: gadb-secret
+              key: postgres-password
+        - name: POSTGRES_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: gadb-config
+              key: POSTGRES_HOST
+        - name: POSTGRES_DB
+          valueFrom:
+            configMapKeyRef:
+              name: gadb-config
+              key: POSTGRES_DB
+        - name: REDIS_URL
+          value: "redis://$(REDIS_HOST):6379/0"
+        - name: REDIS_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: gadb-config
+              key: REDIS_HOST
+        - name: ENVIRONMENT
+          valueFrom:
+            configMapKeyRef:
+              name: gadb-config
+              key: ENVIRONMENT
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            cpu: 500m
+            memory: 1Gi

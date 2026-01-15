@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: gadb-config
+  namespace: gadb
+data:
+  APP_NAME: "GADB"
+  ENVIRONMENT: "production"
+  DEBUG: "False"
+  POSTGRES_DB: "gadb"
+  POSTGRES_HOST: "postgres-service"
+  REDIS_HOST: "redis-service"
+  CORS_ORIGINS: "http://192.168.0.18:30091,http://localhost:3000"

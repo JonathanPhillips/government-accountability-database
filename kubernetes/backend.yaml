@@ -1,0 +1,117 @@
+---
+# Backend Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+  namespace: gadb
+  labels:
+    app: backend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      containers:
+      - name: backend
+        image: 192.168.0.18:30002/gadb/backend:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8000
+          name: http
+        env:
+        - name: APP_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: gadb-config
+              key: APP_NAME
+        - name: ENVIRONMENT
+          valueFrom:
+            configMapKeyRef:
+              name: gadb-config
+              key: ENVIRONMENT
+        - name: DEBUG
+          valueFrom:
+            configMapKeyRef:
+              name: gadb-config
+              key: DEBUG
+        - name: DATABASE_URL
+          value: "postgresql://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@$(POSTGRES_HOST):5432/$(POSTGRES_DB)"
+        - name: POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              name: gadb-secret
+              key: postgres-user
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: gadb-secret
+              key: postgres-password
+        - name: POSTGRES_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: gadb-config
+              key: POSTGRES_HOST
+        - name: POSTGRES_DB
+          valueFrom:
+            configMapKeyRef:
+              name: gadb-config
+              key: POSTGRES_DB
+        - name: REDIS_URL
+          value: "redis://$(REDIS_HOST):6379/0"
+        - name: REDIS_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: gadb-config
+              key: REDIS_HOST
+        - name: SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: gadb-secret
+              key: secret-key
+        - name: CORS_ORIGINS
+          valueFrom:
+            configMapKeyRef:
+              name: gadb-config
+              key: CORS_ORIGINS
+        resources:
+          requests:
+            cpu: 250m
+            memory: 512Mi
+          limits:
+            cpu: 1000m
+            memory: 2Gi
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 10
+          periodSeconds: 5
+
+---
+# Backend Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend-service
+  namespace: gadb
+spec:
+  selector:
+    app: backend
+  type: NodePort
+  ports:
+  - port: 8000
+    targetPort: 8000
+    nodePort: 30089  # Accessible at http://192.168.0.18:30089
+    protocol: TCP
