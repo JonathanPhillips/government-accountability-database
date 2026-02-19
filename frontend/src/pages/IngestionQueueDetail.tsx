@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { api } from '../utils/api';
 
 interface QueueItem {
   id: string;
@@ -35,10 +36,7 @@ const IngestionQueueDetail: React.FC = () => {
   const fetchItem = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`http://localhost:8000/api/ingestion/${id}`);
-      if (!response.ok) throw new Error('Failed to fetch item');
-
-      const data = await response.json();
+      const data = await api.get(`/api/ingestion/${id}`);
       setItem(data);
       setError(null);
     } catch (err) {
@@ -53,19 +51,9 @@ const IngestionQueueDetail: React.FC = () => {
 
     try {
       setUpdating(true);
-      const response = await fetch(`http://localhost:8000/api/ingestion/${item.id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          status: newStatus,
-        }),
+      const updated = await api.put(`/api/ingestion/${item.id}`, {
+        status: newStatus,
       });
-
-      if (!response.ok) throw new Error('Failed to update item');
-
-      const updated = await response.json();
       setItem(updated);
       alert('Status updated successfully');
     } catch (err) {
@@ -80,12 +68,7 @@ const IngestionQueueDetail: React.FC = () => {
 
     try {
       setUpdating(true);
-      const response = await fetch(`http://localhost:8000/api/ingestion/${item.id}`, {
-        method: 'DELETE',
-      });
-
-      if (!response.ok) throw new Error('Failed to delete item');
-
+      await api.delete(`/api/ingestion/${item.id}`);
       alert('Item deleted successfully');
       navigate('/ingestion');
     } catch (err) {

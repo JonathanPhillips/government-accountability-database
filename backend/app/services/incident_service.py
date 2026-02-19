@@ -236,3 +236,233 @@ class IncidentService:
     def get_source_count(db: Session, incident_id: str) -> int:
         """Get count of sources for an incident."""
         return db.query(func.count(Source.id)).filter(Source.incident_id == incident_id).scalar()
+
+    @staticmethod
+    def create_from_queue_item(db: Session, queue_item, created_by: str = "system") -> List[Incident]:
+        """
+        Extract and create incidents from an approved ingestion queue item using LLM.
+
+        Note: One article can contain multiple incidents, so this returns a list.
+
+        Args:
+            db: Database session
+            queue_item: IngestionQueue item with status=APPROVED and raw_content
+            created_by: User who created the incident
+
+        Returns:
+            List of created Incident objects (can be empty if no incidents extracted)
+        """
+        from app.models import IngestionQueue, Category, Actor
+        from app.models.base import (
+            IngestionStatusEnum, SeverityEnum, GeographicScopeEnum,
+            ActorRoleEnum, ReliabilityEnum
+        )
+        from app.schemas.incident import IncidentCreate
+        from app.services.extraction_service import ExtractionService
+        from datetime import datetime
+        import re
+
+        # Only process approved items
+        if queue_item.status != IngestionStatusEnum.APPROVED:
+            return []
+
+        # Use LLM to extract incident data
+        extractor = ExtractionService()
+        extracted_incidents = extractor.extract_from_queue_item(queue_item)
+
+        if not extracted_incidents:
+            print(f"No incidents extracted from queue item {queue_item.id}")
+            return []
+
+        created_incidents = []
+
+        # Get default category
+        default_category = db.query(Category).filter(Category.name == "Uncategorized").first()
+        if not default_category:
+            default_category = Category(name="Uncategorized", description="Items without specific category")
+            db.add(default_category)
+            db.flush()
+
+        # Parse article metadata
+        extracted_meta = queue_item.extracted_data or {}
+        article_title = extracted_meta.get('title', queue_item.source_url)
+        author = extracted_meta.get('author')
+        published_date_str = extracted_meta.get('published_date')
+
+        published_date = None
+        if published_date_str:
+            try:
+                published_date = datetime.fromisoformat(published_date_str.replace('Z', '+00:00'))
+            except (ValueError, AttributeError):
+                published_date = None
+
+        # Process each extracted incident
+        for incident_data in extracted_incidents:
+            try:
+                # Parse incident date
+                incident_date_str = incident_data.get('date')
+                incident_date = None
+                if incident_date_str:
+                    try:
+                        # Try to parse various date formats
+                        for fmt in ['%Y-%m-%d', '%Y/%m/%d', '%m/%d/%Y', '%B %d, %Y']:
+                            try:
+                                incident_date = datetime.strptime(incident_date_str, fmt).date()
+                                break
+                            except ValueError:
+                                continue
+                    except:
+                        pass
+
+                if not incident_date:
+                    # Use article publication date or today
+                    incident_date = published_date.date() if published_date else datetime.utcnow().date()
+
+                # Parse location to extract state
+                location = incident_data.get('location', '')
+                state = None
+                # Simple state extraction (City, ST format)
+                state_match = re.search(r',\s*([A-Z]{2})\b', location)
+                if state_match:
+                    state = state_match.group(1)
+
+                # Determine geographic scope
+                if state:
+                    geo_scope = GeographicScopeEnum.STATE
+                elif 'federal' in location.lower() or 'ICE' in str(incident_data.get('actors', [])):
+                    geo_scope = GeographicScopeEnum.FEDERAL
+                else:
+                    geo_scope = GeographicScopeEnum.LOCAL
+
+                # Check for duplicates (same title and similar date)
+                existing = db.query(Incident).filter(
+                    Incident.title == incident_data.get('title')
+                ).first()
+
+                if existing:
+                    print(f"Skipping duplicate incident: {incident_data.get('title')}")
+                    continue
+
+                # Create incident
+                incident_create = IncidentCreate(
+                    title=incident_data.get('title', 'Untitled Incident'),
+                    summary=incident_data.get('what_happened', '')[:1000],  # Limit summary length
+                    detailed_description=incident_data.get('what_happened', ''),
+                    date_occurred=incident_date,
+                    category_id=default_category.id,
+                    severity=SeverityEnum.MEDIUM,
+                    location_state=state,
+                    location_city=location.split(',')[0].strip() if ',' in location else None,
+                    geographic_scope=geo_scope
+                )
+
+                incident = IncidentService.create(db, incident_create, created_by=created_by)
+
+                # Add actors (perpetrators)
+                actors_list = incident_data.get('actors', [])
+                for actor_str in actors_list:
+                    if not actor_str:
+                        continue
+
+                    # Try to parse "Name, Organization" format
+                    parts = actor_str.split(',', 1)
+                    actor_name = parts[0].strip()
+                    org_info = parts[1].strip() if len(parts) > 1 else None
+
+                    # Check if actor exists
+                    actor = db.query(Actor).filter(Actor.name == actor_name).first()
+                    if not actor:
+                        # Determine actor type based on name/organization
+                        from app.models.base import ActorTypeEnum
+                        if any(keyword in actor_name.lower() for keyword in ['agent', 'officer', 'official', 'director']):
+                            actor_type = ActorTypeEnum.OFFICIAL
+                        else:
+                            actor_type = ActorTypeEnum.AGENCY
+
+                        actor = Actor(
+                            name=actor_name,
+                            actor_type=actor_type,
+                            description=org_info if org_info else None
+                        )
+                        db.add(actor)
+                        db.flush()
+
+                    # Link actor to incident
+                    IncidentService.add_actor(db, incident.id, actor.id, ActorRoleEnum.PERPETRATOR)
+
+                # Add legal frameworks (laws violated)
+                # TODO: Create LegalFramework records and link them
+
+                # Create source record
+                source = Source(
+                    incident_id=incident.id,
+                    title=article_title,
+                    url=queue_item.source_url,
+                    source_type=queue_item.source_type,
+                    author=author,
+                    publication_date=published_date.date() if published_date else None,
+                    reliability=ReliabilityEnum.SECONDARY,
+                    excerpt=incident_data.get('what_happened', '')[:500]
+                )
+                db.add(source)
+
+                created_incidents.append(incident)
+
+            except Exception as e:
+                print(f"Error creating incident from extracted data: {str(e)}")
+                print(f"Incident data: {incident_data}")
+                continue
+
+        # Mark queue item as converted (link to first incident if any)
+        if created_incidents:
+            queue_item.created_incident_id = created_incidents[0].id
+
+        db.commit()
+
+        for incident in created_incidents:
+            db.refresh(incident)
+
+        return created_incidents
+
+    @staticmethod
+    def convert_approved_queue_items(db: Session, limit: int = 100, created_by: str = "system") -> dict:
+        """
+        Convert multiple approved queue items to incidents.
+
+        Args:
+            db: Database session
+            limit: Maximum number of items to convert
+            created_by: User who triggered the conversion
+
+        Returns:
+            Dictionary with conversion statistics
+        """
+        from app.models import IngestionQueue
+        from app.models.base import IngestionStatusEnum
+
+        # Get approved items that haven't been converted yet
+        approved_items = db.query(IngestionQueue).filter(
+            IngestionQueue.status == IngestionStatusEnum.APPROVED,
+            IngestionQueue.created_incident_id == None
+        ).limit(limit).all()
+
+        results = {
+            'total_attempted': len(approved_items),
+            'successful': 0,
+            'failed': 0,
+            'incident_ids': []
+        }
+
+        for item in approved_items:
+            try:
+                incident = IncidentService.create_from_queue_item(db, item, created_by)
+                if incident:
+                    results['successful'] += 1
+                    results['incident_ids'].append(incident.id)
+                else:
+                    results['failed'] += 1
+            except Exception as e:
+                results['failed'] += 1
+                print(f"Failed to convert queue item {item.id}: {str(e)}")
+
+        return results

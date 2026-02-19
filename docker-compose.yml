@@ -43,6 +43,7 @@ services:
     environment:
       DATABASE_URL: postgresql://gadb:gadb_dev_password@postgres:5432/gadb
       REDIS_URL: redis://redis:6379/0
+      LM_STUDIO_URL: http://192.168.0.179:1234
       ENVIRONMENT: development
       DEBUG: "True"
     depends_on:
@@ -62,6 +63,7 @@ services:
     environment:
       DATABASE_URL: postgresql://gadb:gadb_dev_password@postgres:5432/gadb
       REDIS_URL: redis://redis:6379/0
+      LM_STUDIO_URL: http://192.168.0.179:1234
       ENVIRONMENT: development
     depends_on:
       postgres:
@@ -80,6 +82,7 @@ services:
     environment:
       DATABASE_URL: postgresql://gadb:gadb_dev_password@postgres:5432/gadb
       REDIS_URL: redis://redis:6379/0
+      LM_STUDIO_URL: http://192.168.0.179:1234
       ENVIRONMENT: development
     depends_on:
       postgres:

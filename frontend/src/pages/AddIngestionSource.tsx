@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+const API_HOST = import.meta.env.VITE_API_URL ? '' : 'http://localhost:8000';
+
 type SourceType = 'rss' | 'youtube' | 'pdf';
 
 const AddIngestionSource: React.FC = () => {
@@ -65,7 +67,7 @@ const AddIngestionSource: React.FC = () => {
           break;
       }
 
-      const response = await fetch(`http://localhost:8000${endpoint}`, {
+      const response = await fetch(`${API_HOST}${endpoint}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

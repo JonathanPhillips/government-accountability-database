@@ -1,4 +1,4 @@
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { getCurrentUser } from '../utils/api';
 
@@ -12,10 +12,20 @@ interface User {
 
 const Header = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
 
   useEffect(() => {
+    const fetchCurrentUser = async () => {
+      try {
+        const user = await getCurrentUser();
+        setCurrentUser(user);
+      } catch (error) {
+        console.error('Failed to fetch current user:', error);
+      }
+    };
+
     // Check if user has a token in localStorage
     const token = localStorage.getItem('access_token');
     setIsAuthenticated(!!token);
@@ -24,16 +34,7 @@ const Header = () => {
     if (token) {
       fetchCurrentUser();
     }
-  }, []);
-
-  const fetchCurrentUser = async () => {
-    try {
-      const user = await getCurrentUser();
-      setCurrentUser(user);
-    } catch (error) {
-      console.error('Failed to fetch current user:', error);
-    }
-  };
+  }, [location]);
 
   const handleLogout = () => {
     // Remove tokens from localStorage

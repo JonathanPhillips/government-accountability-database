@@ -22,6 +22,7 @@ from app.schemas.base import PaginatedResponse
 from app.services.rss_ingester import RSSIngester
 from app.services.youtube_ingester import YouTubeIngester
 from app.services.pdf_processor import PDFProcessor
+from app.services.auto_processor import AutoProcessor
 from app.tasks.ingestion_tasks import ingest_all_feeds, ingest_rss_feed as ingest_rss_task
 from app.utils.deps import require_role
 
@@ -272,4 +273,101 @@ def get_task_status(task_id: str) -> Dict:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Task not found: {str(e)}"
+        )
+
+
+@router.post("/auto-process")
+def auto_process_queue(
+    limit: int = Query(100, ge=1, le=1000),
+    dry_run: bool = Query(False),
+    current_user: User = Depends(require_role(UserRoleEnum.EDITOR)),
+    db: Session = Depends(get_db)
+) -> Dict:
+    """
+    Auto-process ingestion queue items using intelligent keyword matching.
+    Requires EDITOR role or higher.
+
+    Args:
+        limit: Maximum number of items to process in this batch
+        dry_run: If true, simulate processing without updating database
+
+    Returns:
+        Statistics about processing results
+    """
+    try:
+        processor = AutoProcessor(db)
+        results = processor.process_batch(limit=limit, dry_run=dry_run)
+        
+        return {
+            "status": "success",
+            "dry_run": dry_run,
+            "results": results
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to auto-process queue: {str(e)}"
+        )
+
+
+@router.get("/auto-process/statistics")
+def get_auto_process_statistics(
+    current_user: User = Depends(require_role(UserRoleEnum.REVIEWER)),
+    db: Session = Depends(get_db)
+) -> Dict:
+    """
+    Get statistics about auto-processing results.
+    Requires REVIEWER role or higher.
+
+    Returns:
+        Statistics about current auto-processing state
+    """
+    try:
+        processor = AutoProcessor(db)
+        stats = processor.get_statistics()
+        
+        return {
+            "status": "success",
+            "statistics": stats
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to get statistics: {str(e)}"
+        )
+
+
+@router.post("/convert-approved")
+def convert_approved_to_incidents(
+    limit: int = Query(100, ge=1, le=1000),
+    current_user: User = Depends(require_role(UserRoleEnum.EDITOR)),
+    db: Session = Depends(get_db)
+) -> Dict:
+    """
+    Convert approved ingestion queue items to incidents.
+    Requires EDITOR role or higher.
+
+    Args:
+        limit: Maximum number of approved items to convert
+
+    Returns:
+        Statistics about conversion results
+    """
+    try:
+        from app.services.incident_service import IncidentService
+
+        results = IncidentService.convert_approved_queue_items(
+            db=db,
+            limit=limit,
+            created_by=current_user.email
+        )
+
+        return {
+            "status": "success",
+            "results": results
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to convert approved items: {str(e)}"
         )
